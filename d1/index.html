@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Making good decisions: checklist for donees</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Figtree:wght@400;600&display=swap">
+<style>
+:root{--bg:#fffaf6;--ink:#3a2e28;--muted:#6f625a;--accent:#c4621f;--panel:#fbece1;--line:#e3a77c;--done:#2f7d4f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1714;--ink:#f3e8e0;--muted:#b9a99d;--accent:#f0955a;--panel:#2b211c;--line:#8a5a3a;--done:#6cc58f}}
+:root[data-theme="dark"]{--bg:#1d1714;--ink:#f3e8e0;--muted:#b9a99d;--accent:#f0955a;--panel:#2b211c;--line:#8a5a3a;--done:#6cc58f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.5 Figtree,system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:28px 18px 48px}
+.part{margin:0;color:var(--muted);font-size:14px;letter-spacing:.12em}
+h1{font:400 clamp(30px,9vw,46px)/1.05 "Archivo Black",Impact,sans-serif;color:var(--accent);margin:6px 0 10px;text-transform:uppercase}
+h2{font:400 clamp(20px,5.5vw,26px)/1.2 "Archivo Black",Impact,sans-serif;color:var(--accent);margin:0 0 8px}
+.intro{margin:0 0 18px}
+.panel{background:var(--panel);border-radius:14px;padding:6px 14px}
+.item{display:flex;gap:14px;align-items:flex-start;padding:14px 0;cursor:pointer;border-bottom:1px solid color-mix(in srgb,var(--line) 40%,transparent)}
+.item:last-child{border-bottom:0}
+.item input{appearance:none;flex:none;width:28px;height:28px;margin:2px 0 0;border:2.5px solid var(--accent);border-radius:7px;background:transparent;cursor:pointer;display:grid;place-content:center}
+.item input:checked{background:var(--done);border-color:var(--done)}
+.item input:checked::after{content:"";width:7px;height:13px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.item input:focus-visible,button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.item span small{display:block;color:var(--muted);font-size:14.5px;margin-top:2px}
+.item input:checked+span{color:var(--muted)}
+.bar{height:10px;background:var(--panel);border-radius:6px;overflow:hidden;margin:20px 0 6px}
+.bar i{display:block;height:100%;width:0;background:var(--done);transition:width .3s}
+.count{margin:0 0 14px;font-weight:600}
+.left{margin:0 0 14px;padding-left:20px}
+.left:empty{display:none}
+.ok{color:var(--done);font-weight:600}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 24px}
+.btn{font:600 16px Figtree,system-ui,sans-serif;padding:12px 18px;border-radius:10px;border:2px solid var(--accent);background:var(--accent);color:#fff;text-decoration:none;cursor:pointer;min-height:46px;display:inline-flex;align-items:center}
+.btn.alt{background:transparent;color:var(--accent)}
+.btn[hidden]{display:none}
+label.n{display:block;font-weight:600;margin:0 0 6px}
+textarea{width:100%;min-height:96px;font:inherit;color:var(--ink);background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:10px}
+.fine{color:var(--muted);font-size:14.5px;margin-top:26px}
+.fine a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<p class="part">PART D</p>
+<h1>Making good decisions</h1>
+<h2>D1. Before you decide</h2>
+<p class="intro">Run through this checklist each time you are about to make a decision for the Donor.</p>
+
+<div class="panel" id="list"></div>
+
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+<p class="count" id="count" aria-live="polite"></p>
+<ul class="left" id="left"></ul>
+
+<div class="btns">
+<a class="btn" id="remind" target="_blank" rel="noopener" hidden>Remind me to finish</a>
+<button class="btn alt" id="reset" type="button">Start a new decision</button>
+</div>
+
+<label class="n" for="note">Record of this decision and my reasons (optional)</label>
+<textarea id="note" placeholder="What I decided, and why."></textarea>
+
+<p class="fine">Your ticks and notes are saved only on this device. Nothing is sent to anyone. Clearing your browser data or using a private window will erase them.</p>
+<p class="fine">This checklist is general guidance based on Singapore’s Mental Capacity Act 2008 and is not legal advice. For official information, see the <a href="https://www.msf.gov.sg/opg" target="_blank" rel="noopener">Office of the Public Guardian</a>.</p>
+</main>
+<script>
+var ITEMS=[
+["Does the Donor lack capacity for this decision, or do I reasonably believe so?",""],
+["Have I helped the Donor take part as far as they can?",""],
+["Is this the option that restricts their rights and freedom least?",""],
+["Have I recorded the decision and my reasons?",""],
+["Does the LPA give me this power, and are there conditions attached?",""],
+["What would the Donor have wanted?","Consider any Advance Care Planning, past wishes, beliefs and values."],
+["Have I consulted the people the Donor would want consulted?",""]
+];
+var KEY="lpa-d1-v1",state={c:[],n:""};
+try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.c)state=s}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+var list=document.getElementById("list");
+ITEMS.forEach(function(it,i){
+ var l=document.createElement("label");l.className="item";
+ var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!state.c[i];
+ cb.onchange=function(){state.c[i]=cb.checked;save();render()};
+ var sp=document.createElement("span");sp.textContent=it[0];
+ if(it[1]){var sm=document.createElement("small");sm.textContent=it[1];sp.appendChild(sm)}
+ l.appendChild(cb);l.appendChild(sp);list.appendChild(l);
+});
+var note=document.getElementById("note");note.value=state.n||"";
+note.oninput=function(){state.n=note.value;save()};
+function pad(n){return n<10?"0"+n:""+n}
+function render(){
+ var done=0,left=document.getElementById("left");left.innerHTML="";
+ var open=[];
+ ITEMS.forEach(function(it,i){if(state.c[i])done++;else{open.push(it[0]);var li=document.createElement("li");li.textContent=it[0];left.appendChild(li)}});
+ document.getElementById("fill").style.width=(done/ITEMS.length*100)+"%";
+ var c=document.getElementById("count"),r=document.getElementById("remind");
+ if(done===ITEMS.length){c.innerHTML='<span class="ok">All '+ITEMS.length+' done. You can go ahead with your decision.</span>';r.hidden=true}
+ else{c.textContent=done+" of "+ITEMS.length+" done. Still to do:";
+  var d=new Date();d.setDate(d.getDate()+1);
+  var day=""+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
+  r.href="https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("Finish decision checklist for the Donor")+"&details="+encodeURIComponent("Still to do:\n- "+open.join("\n- "))+"&dates="+day+"T090000/"+day+"T093000&ctz=Asia/Singapore";
+  r.hidden=false}
+}
+document.getElementById("reset").onclick=function(){
+ if(!confirm("Clear all ticks and your note to start a new decision?"))return;
+ state={c:[],n:""};save();note.value="";
+ list.querySelectorAll("input").forEach(function(x){x.checked=false});render();
+};
+render();
+</script>
+</body>
+</html>

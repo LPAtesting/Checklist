@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>C2. How do I make my LPA? Before you start</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Figtree:wght@400;600&display=swap">
+<style>
+:root{--bg:#fdfbff;--ink:#2b2540;--muted:#645d78;--accent:#5b3d9e;--panel:#ede8f7;--line:#8f7bc4;--done:#2f7d4f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16131f;--ink:#efeaf9;--muted:#b3abc8;--accent:#b8a1f2;--panel:#241f33;--line:#6f5ca8;--done:#6cc58f}}
+:root[data-theme="dark"]{--bg:#16131f;--ink:#efeaf9;--muted:#b3abc8;--accent:#b8a1f2;--panel:#241f33;--line:#6f5ca8;--done:#6cc58f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.5 Figtree,system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:28px 18px 48px}
+h1{font:400 clamp(24px,7vw,34px)/1.15 "Archivo Black",Impact,sans-serif;color:var(--accent);margin:0 0 16px}
+.lead{margin:0 0 6px;color:var(--muted);font-size:14px;letter-spacing:.12em;font-weight:600;text-transform:uppercase}
+.panel{background:var(--panel);border-radius:14px;padding:6px 14px}
+.item{display:flex;gap:14px;align-items:flex-start;padding:14px 0;cursor:pointer;border-bottom:1px solid color-mix(in srgb,var(--line) 40%,transparent)}
+.item:last-child{border-bottom:0}
+.item input{appearance:none;flex:none;width:28px;height:28px;margin:2px 0 0;border:2.5px solid var(--accent);border-radius:7px;background:transparent;cursor:pointer;display:grid;place-content:center}
+.item input:checked{background:var(--done);border-color:var(--done)}
+.item input:checked::after{content:"";width:7px;height:13px;border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.item input:focus-visible,button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.item input:checked+span{color:var(--muted)}
+.bar{height:10px;background:var(--panel);border-radius:6px;overflow:hidden;margin:20px 0 6px}
+.bar i{display:block;height:100%;width:0;background:var(--done);transition:width .3s}
+.count{margin:0 0 14px;font-weight:600}
+.left{margin:0 0 14px;padding-left:20px}
+.left:empty{display:none}
+.ok{color:var(--done);font-weight:600}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 24px}
+.btn{font:600 16px Figtree,system-ui,sans-serif;padding:12px 18px;border-radius:10px;border:2px solid var(--accent);background:var(--accent);color:#fff;text-decoration:none;cursor:pointer;min-height:46px;display:inline-flex;align-items:center}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn:not(.alt){color:#16131f}}
+.btn.alt{background:transparent;color:var(--accent)}
+.btn[hidden]{display:none}
+.fine{color:var(--muted);font-size:14.5px;margin-top:22px}
+.fine a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<h1>C2. How do I make my LPA?</h1>
+<p class="lead">Before you start, ensure:</p>
+
+<div class="panel" id="list"></div>
+
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+<p class="count" id="count" aria-live="polite"></p>
+<ul class="left" id="left"></ul>
+
+<div class="btns">
+<a class="btn" id="remind" target="_blank" rel="noopener" hidden>Remind me to finish</a>
+<button class="btn alt" id="reset" type="button">Clear all ticks</button>
+</div>
+
+<p class="fine">Your ticks are saved only on this device. Nothing is sent to anyone. Clearing your browser data or using a private window will erase them.</p>
+<p class="fine">This checklist is general guidance and is not legal advice. For official information on making an LPA in Singapore, see the <a href="https://www.msf.gov.sg/opg" target="_blank" rel="noopener">Office of the Public Guardian</a>.</p>
+</main>
+<script>
+var ITEMS=[
+"your Singpass app has been installed and is working",
+"you have decided which powers to give",
+"your Donees have agreed to be appointed",
+"you know which Certificate Issuer you will visit",
+"you have each Donee’s NRIC, mobile number and email (and your Replacement Donee’s)",
+"if you have two Donees, you have decided how they will make decisions (jointly or jointly and severally)",
+"you have talked about your wishes for care, money and where to live"
+];
+var KEY="lpa-c2-v1",state={c:[]};
+try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.c)state=s}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+var list=document.getElementById("list");
+ITEMS.forEach(function(t,i){
+ var l=document.createElement("label");l.className="item";
+ var cb=document.createElement("input");cb.type="checkbox";cb.checked=!!state.c[i];
+ cb.onchange=function(){state.c[i]=cb.checked;save();render()};
+ var sp=document.createElement("span");sp.textContent=t;
+ l.appendChild(cb);l.appendChild(sp);list.appendChild(l);
+});
+function pad(n){return n<10?"0"+n:""+n}
+function render(){
+ var done=0,left=document.getElementById("left");left.innerHTML="";
+ var open=[];
+ ITEMS.forEach(function(t,i){if(state.c[i])done++;else{open.push(t);var li=document.createElement("li");li.textContent=t;left.appendChild(li)}});
+ document.getElementById("fill").style.width=(done/ITEMS.length*100)+"%";
+ var c=document.getElementById("count"),r=document.getElementById("remind");
+ if(done===ITEMS.length){c.innerHTML='<span class="ok">All '+ITEMS.length+' done. You’re ready to start.</span>';r.hidden=true}
+ else{c.textContent=done+" of "+ITEMS.length+" done. Still to do:";
+  var d=new Date();d.setDate(d.getDate()+1);
+  var day=""+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
+  r.href="https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("Finish LPA preparation checklist")+"&details="+encodeURIComponent("Still to do before starting my LPA:\n- "+open.join("\n- "))+"&dates="+day+"T090000/"+day+"T093000&ctz=Asia/Singapore";
+  r.hidden=false}
+}
+document.getElementById("reset").onclick=function(){
+ if(!confirm("Clear all ticks?"))return;
+ state={c:[]};save();
+ list.querySelectorAll("input").forEach(function(x){x.checked=false});render();
+};
+render();
+</script>
+</body>
+</html>
